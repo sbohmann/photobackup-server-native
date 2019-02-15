@@ -1,11 +1,14 @@
 #include <iostream>
 
-#include <Magick++/Image.h>
+#include <MagickWand/MagickWand.h>
 #include <cstring>
 
 #include "at_yeoman_photobackup_server_heicToJpeg_HeicToJpeg.h"
 
-using namespace Magick;
+JNIEXPORT void JNICALL
+Java_at_yeoman_photobackup_server_heicToJpeg_HeicToJpeg_initialize(JNIEnv *, jclass) {
+    MagickWandGenesis();
+}
 
 struct PinnedByteArray {
     JNIEnv *const env;
@@ -25,23 +28,32 @@ struct PinnedByteArray {
     }
 };
 
-// TODO handle errors (exceptions?) from Magick++
+// TODO handle errors from Magick++
 JNIEXPORT jbyteArray JNICALL
 Java_at_yeoman_photobackup_server_heicToJpeg_HeicToJpeg_convert(JNIEnv *env, jclass, jbyteArray heicData) {
     try {
         Image heicImage;
         PinnedByteArray pinnedHeicData(env, heicData);
-        Blob heicDataBlob(pinnedHeicData.data, (size_t) pinnedHeicData.length);
-        heicImage.read(heicDataBlob);
-        Blob resultBlob;
-        const std::string format = "JPEG";
-        std::cerr << "write..." << std::endl;
-        heicImage.write(&resultBlob);//, format, 16);
-        std::cerr << "written." << std::endl;
-        // TODO handle result length above Integer>MAX_VALUE
-        jbyteArray resultData = env->NewByteArray((jsize) resultBlob.length());
+
+        MagickWand *wand = nullptr;
+
+        wand = NewMagickWand();
+
+        MagickReadImageBlob(wand, pinnedHeicData.data, (size_t) pinnedHeicData.length);
+
+        MagickSetImageFormat(wand, "JPEG");
+
+        size_t resultBlobSize = 0;
+        unsigned char * resultBlobData = MagickGetImageBlob(wand, &resultBlobSize);
+
+        if(wand)wand = DestroyMagickWand(wand);
+
+        jbyteArray resultData = env->NewByteArray((jsize) resultBlobSize);
         PinnedByteArray pinnedResultData(env, resultData);
-        std::memcpy(pinnedResultData.data, resultBlob.data(), resultBlob.length());
+        std::memcpy(pinnedResultData.data, resultBlobData, resultBlobSize);
+        
+        MagickRelinquishMemory(resultBlobData);
+
         return resultData;
     } catch (std::exception &error) {
         std::cerr << "HeicToJpeg.convert: " << error.what() << std::endl;
