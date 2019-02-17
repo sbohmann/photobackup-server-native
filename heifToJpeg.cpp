@@ -3,10 +3,10 @@
 #include <MagickWand/MagickWand.h>
 #include <cstring>
 
-#include "at_yeoman_photobackup_server_heicToJpeg_HeicToJpeg.h"
+#include "at_yeoman_photobackup_server_imageMagick_ImageMagick.h"
 
 JNIEXPORT void JNICALL
-Java_at_yeoman_photobackup_server_heicToJpeg_HeicToJpeg_initialize(JNIEnv *, jclass) {
+Java_at_yeoman_photobackup_server_imageMagick_ImageMagick_initialize(JNIEnv *, jclass) {
     MagickWandGenesis();
 }
 
@@ -28,12 +28,12 @@ struct PinnedByteArray {
     }
 };
 
-// TODO handle errors from Magick++
+// TODO handle errors from MagickWand
 JNIEXPORT jbyteArray JNICALL
-Java_at_yeoman_photobackup_server_heicToJpeg_HeicToJpeg_convert(JNIEnv *env, jclass, jbyteArray heicData) {
+Java_at_yeoman_photobackup_server_imageMagick_ImageMagick_convertToJpeg(JNIEnv *env, jclass, jbyteArray inputData) {
     try {
-        Image heicImage;
-        PinnedByteArray pinnedHeicData(env, heicData);
+        Image inputImage;
+        PinnedByteArray pinnedHeicData(env, inputData);
 
         MagickWand *wand = nullptr;
 
@@ -44,19 +44,85 @@ Java_at_yeoman_photobackup_server_heicToJpeg_HeicToJpeg_convert(JNIEnv *env, jcl
         MagickSetImageFormat(wand, "JPEG");
 
         size_t resultBlobSize = 0;
-        unsigned char * resultBlobData = MagickGetImageBlob(wand, &resultBlobSize);
 
-        if(wand)wand = DestroyMagickWand(wand);
+        unsigned char *resultBlobData = MagickGetImageBlob(wand, &resultBlobSize);
+
+        if (wand) {
+            wand = DestroyMagickWand(wand);
+        }
 
         jbyteArray resultData = env->NewByteArray((jsize) resultBlobSize);
         PinnedByteArray pinnedResultData(env, resultData);
         std::memcpy(pinnedResultData.data, resultBlobData, resultBlobSize);
-        
+
         MagickRelinquishMemory(resultBlobData);
 
         return resultData;
     } catch (std::exception &error) {
-        std::cerr << "HeicToJpeg.convert: " << error.what() << std::endl;
+        std::cerr << "ImageMagick.convertToJpeg: " << error.what() << std::endl;
+        return nullptr;
+    }
+}
+
+// TODO handle errors from MagickWand
+JNIEXPORT jbyteArray JNICALL Java_at_yeoman_photobackup_server_imageMagick_ImageMagick_convertToJpegWithMaximumSize
+        (JNIEnv *env, jclass, jbyteArray inputData, jint maximumWidth, jint maximumHeight) {
+
+    if (maximumWidth <= 0 || maximumHeight <= 0) {
+        std::cerr << "ImageMagick.convertToJpegWithMaximumSize: illegal maximum width / height" <<
+                  maximumWidth << " / " << maximumHeight << std::endl;
+        return nullptr;
+    }
+
+    try {
+        Image inputImage;
+        PinnedByteArray pinnedHeicData(env, inputData);
+
+        MagickWand *wand = nullptr;
+
+        wand = NewMagickWand();
+
+        MagickReadImageBlob(wand, pinnedHeicData.data, (size_t) pinnedHeicData.length);
+
+        size_t originalWidth = MagickGetImageWidth(wand);
+        size_t originalHeight = MagickGetImageHeight(wand);
+
+        double widthRatio = (double) originalWidth / (double) maximumWidth;
+        double heightRatio = (double) originalHeight / (double) maximumHeight;
+
+        size_t width, height;
+
+        if (widthRatio > heightRatio) {
+            width = (size_t) maximumWidth;
+            height = (size_t) lround((double) originalHeight * (double) maximumWidth / (double) originalWidth);
+        } else {
+            width = (size_t) lround((double) originalWidth * (double) maximumHeight / (double) originalHeight);
+            height = (size_t) maximumHeight;
+        }
+
+//        std::cout << "width: " << width << ", height " << height << " for originalWidth " << originalWidth << ", originalHeight " << originalHeight << std::endl;
+
+        MagickSetImageFormat(wand, "JPEG");
+
+        MagickResizeImage(wand, width, height, BoxFilter);
+
+        size_t resultBlobSize = 0;
+
+        unsigned char *resultBlobData = MagickGetImageBlob(wand, &resultBlobSize);
+
+        if (wand) {
+            wand = DestroyMagickWand(wand);
+        }
+
+        jbyteArray resultData = env->NewByteArray((jsize) resultBlobSize);
+        PinnedByteArray pinnedResultData(env, resultData);
+        std::memcpy(pinnedResultData.data, resultBlobData, resultBlobSize);
+
+        MagickRelinquishMemory(resultBlobData);
+
+        return resultData;
+    } catch (std::exception &error) {
+        std::cerr << "ImageMagick.convertToJpegWithMaximumSize: " << error.what() << std::endl;
         return nullptr;
     }
 }
