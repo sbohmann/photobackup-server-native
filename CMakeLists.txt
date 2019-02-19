@@ -14,7 +14,7 @@ include_directories(
 
 link_directories($ENV{MAGICK_LIBS})
 
-link_libraries(CORE_RL_Magick++_ CORE_RL_MagickWand_)
+link_libraries($ENV{MAGICK_WAND_LIBRARY})
 
 set(CMAKE_CXX_STANDARD 14)
 
