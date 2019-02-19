@@ -12,7 +12,7 @@ include_directories(
         SYSTEM $ENV{MAGICK_INCLUDES}
 )
 
-link_directories($ENV{MAGICK_HOME}/lib)
+link_directories($ENV{MAGICK_LIBS})
 
 link_libraries(CORE_RL_Magick++_ CORE_RL_MagickWand_)
 
