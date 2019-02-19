@@ -8,7 +8,7 @@ add_compile_definitions(
 
 include_directories(
         SYSTEM $ENV{JAVA_HOME}/include
-        SYSTEM $ENV{JAVA_HOME}/include/win32
+        SYSTEM $ENV{JAVA_HOME}/include/$ENV{JNI_OS}
         SYSTEM $ENV{MAGICK_INCLUDES}
 )
 
