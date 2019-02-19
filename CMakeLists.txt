@@ -4,7 +4,7 @@ project(photobackup_server_native)
 include_directories(
         SYSTEM $ENV{JAVA_HOME}/include
         SYSTEM $ENV{JAVA_HOME}/include/win32
-        SYSTEM $ENV{MAGICK_HOME}/include
+        SYSTEM $ENV{MAGICK_INCLUDES}
 )
 
 link_directories($ENV{MAGICK_HOME}/lib)
