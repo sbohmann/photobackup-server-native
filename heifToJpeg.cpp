@@ -1,7 +1,9 @@
 #include <iostream>
+#include <cstring>
+
+#define MAGICKCORE_QUANTUM_DEPTH 16
 
 #include <MagickWand/MagickWand.h>
-#include <cstring>
 
 #include "at_yeoman_photobackup_server_imageMagick_ImageMagick.h"
 
