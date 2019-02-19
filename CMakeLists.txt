@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.13)
 project(photobackup_server_native)
 
+add_compile_definitions(MAGICKCORE_QUANTUM_DEPTH=16)
+
 include_directories(
         SYSTEM $ENV{JAVA_HOME}/include
         SYSTEM $ENV{JAVA_HOME}/include/win32
