@@ -20,5 +20,5 @@ message("including $ENV{MAGICK_INCLUDES}, libdirs [$ENV{MAGICK_LIBS}], libs[$ENV
 
 set(CMAKE_CXX_STANDARD 14)
 
-add_library(photobackup_server_native SHARED heifToJpeg.cpp main.cpp)
+add_library(photobackup_server_native SHARED imageMagick.cpp)
 add_executable(test main.cpp)
