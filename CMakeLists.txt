@@ -16,6 +16,8 @@ link_directories($ENV{MAGICK_LIBS})
 
 link_libraries($ENV{MAGICK_WAND_LIBRARY})
 
+message("including $ENV{MAGICK_INCLUDES}, libdirs [$ENV{MAGICK_LIBS}], libs[$ENV{MAGICK_WAND_LIBRARY}]")
+
 set(CMAKE_CXX_STANDARD 14)
 
 add_library(photobackup_server_native SHARED heifToJpeg.cpp main.cpp)
