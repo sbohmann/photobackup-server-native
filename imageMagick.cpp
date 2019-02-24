@@ -54,7 +54,7 @@ struct Error : public std::exception {
             : message(message) {
     }
     
-    virtual const char * what() const throws() {
+    virtual const char * what() const throw() {
         return message.c_str();
     }
 };
