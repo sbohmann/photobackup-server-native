@@ -34,12 +34,12 @@ struct AutoClosing {
     const T instance;
     const std::function<void(const T &)> close;
     
-    AutoClosing(const T &entity, const std::function<void(const T &)> &close)
+    AutoClosing(const T &entity, const std::function<void(const T &)> close)
             : instance(entity), close(close) {
     }
     
     ~AutoClosing() {
-//        close(instance);
+        close(instance);
     }
     
     operator const T &() {
