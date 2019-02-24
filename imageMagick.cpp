@@ -54,8 +54,8 @@ struct Error : public std::exception {
             : message(message) {
     }
     
-    const std::string &what() {
-        return message;
+    const char * what() {
+        return message.c_str();
     }
 };
 
