@@ -39,7 +39,7 @@ struct AutoClosing {
     }
     
     ~AutoClosing() {
-        close(instance);
+//        close(instance);
     }
     
     operator const T &() {
