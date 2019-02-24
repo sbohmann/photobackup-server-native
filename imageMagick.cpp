@@ -131,13 +131,17 @@ Java_at_yeoman_photobackup_server_imageMagick_ImageMagick_convertToJpeg(JNIEnv *
         
         size_t resultBlobSize = 0;
         
-        unsigned char *resultBlobData = MagickGetImageBlob(wand, &resultBlobSize);
+        auto resultBlobData = AutoClosing<unsigned char *>(
+                MagickGetImageBlob(wand, &resultBlobSize),
+                [](unsigned char *instance) {
+                    MagickRelinquishMemory(instance);
+                });
         
         jbyteArray resultData = env->NewByteArray((jsize) resultBlobSize);
         PinnedByteArray pinnedResultData(env, resultData);
         std::memcpy(pinnedResultData.data, resultBlobData, resultBlobSize);
         
-        MagickRelinquishMemory(resultBlobData);
+        
         
         return resultData;
     } catch (std::exception &error) {
@@ -187,7 +191,11 @@ JNIEXPORT jbyteArray JNICALL Java_at_yeoman_photobackup_server_imageMagick_Image
         
         size_t resultBlobSize = 0;
         
-        unsigned char *resultBlobData = MagickGetImageBlob(wand, &resultBlobSize);
+        auto resultBlobData = AutoClosing<unsigned char *>(
+                MagickGetImageBlob(wand, &resultBlobSize),
+                [](unsigned char *instance) {
+                    MagickRelinquishMemory(instance);
+                });
         
         jbyteArray resultData = env->NewByteArray((jsize) resultBlobSize);
         PinnedByteArray pinnedResultData(env, resultData);
