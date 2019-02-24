@@ -75,6 +75,13 @@ auto createWand() {
     return wand;
 }
 
+void javaThrow(JNIEnv *env, const std::string &message) {
+    auto exceptionClass = env->FindClass("java.lang.Exception");
+    if (exceptionClass != nullptr) {
+        env->ThrowNew(exceptionClass, message.c_str());
+    }
+}
+
 // TODO handle errors from MagickWand
 JNIEXPORT jbyteArray JNICALL
 Java_at_yeoman_photobackup_server_imageMagick_ImageMagick_convertToJpeg(JNIEnv *env, jclass, jbyteArray inputData) {
@@ -101,7 +108,7 @@ Java_at_yeoman_photobackup_server_imageMagick_ImageMagick_convertToJpeg(JNIEnv *
         
         return resultData;
     } catch (std::exception &error) {
-        std::cerr << "ImageMagick.convertToJpeg: " << error.what() << std::endl;
+        javaThrow(env, std::string() + "ImageMagick.convertToJpeg: " + error.what());
         return nullptr;
     }
 }
@@ -157,7 +164,7 @@ JNIEXPORT jbyteArray JNICALL Java_at_yeoman_photobackup_server_imageMagick_Image
         
         return resultData;
     } catch (std::exception &error) {
-        std::cerr << "ImageMagick.convertToJpegWithMaximumSize: " << error.what() << std::endl;
+        javaThrow(env, std::string() + "ImageMagick.convertToJpegWithMaximumSize: " + error.what());
         return nullptr;
     }
 }
