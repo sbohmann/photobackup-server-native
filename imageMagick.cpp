@@ -47,17 +47,29 @@ struct AutoClosing {
     }
 };
 
+struct Error : public std::exception {
+    const std::string message;
+    
+    Error(const std::string &message)
+            : message(message) {
+    }
+    
+    const std::string &what() {
+        return message;
+    }
+};
+
 auto createWand() {
     auto wand = AutoClosing<MagickWand *>(
             NewMagickWand(),
-            [](MagickWand * const instance) {
+            [](MagickWand *const instance) {
                 if (instance) {
                     DestroyMagickWand(instance);
                 }
             });
     
     if (wand.instance == nullptr) {
-        throw std::exception("Unable to create wand");
+        throw Error("Unable to create wand");
     }
     
     return wand;
