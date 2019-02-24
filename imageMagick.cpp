@@ -76,7 +76,7 @@ auto createWand() {
 }
 
 void javaThrow(JNIEnv *env, const std::string &message) {
-    auto exceptionClass = env->FindClass("java.lang.Exception");
+    auto exceptionClass = env->FindClass("java/lang/RuntimeException");
     if (exceptionClass != nullptr) {
         env->ThrowNew(exceptionClass, message.c_str());
     }
