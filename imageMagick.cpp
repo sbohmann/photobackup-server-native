@@ -83,7 +83,9 @@ Java_at_yeoman_photobackup_server_imageMagick_ImageMagick_convertToJpeg(JNIEnv *
         
         auto wand = createWand();
         
-        MagickReadImageBlob(wand, pinnedHeicData.data, (size_t) pinnedHeicData.length);
+        if (MagickReadImageBlob(wand, pinnedHeicData.data, (size_t) pinnedHeicData.length) == MagickFalse) {
+            throw Error("Unable to read input image");
+        }
         
         MagickSetImageFormat(wand, "JPEG");
         
