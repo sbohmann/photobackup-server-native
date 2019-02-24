@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cstring>
 #include <functional>
+#include <sstream>
 
 #include <MagickWand/MagickWand.h>
 
@@ -27,6 +28,9 @@ struct PinnedByteArray {
     ~PinnedByteArray() {
         env->ReleaseByteArrayElements(array, data, 0);
     }
+    
+private:
+    PinnedByteArray(const PinnedByteArray &other);
 };
 
 template<typename T>
@@ -59,6 +63,8 @@ struct Error : public std::exception {
     }
 };
 
+void readImage(AutoClosing<MagickWand *> closing, PinnedByteArray array);
+
 auto createWand() {
     auto wand = AutoClosing<MagickWand *>(
             NewMagickWand(),
@@ -83,16 +89,24 @@ void javaThrow(JNIEnv *env, const std::string &message) {
 }
 
 // TODO handle errors from MagickWand
-JNIEXPORT jbyteArray JNICALL
+JNIEXPORT void readImage(AutoClosing<MagickWand *> wand, const PinnedByteArray &pinnedHeicData) {
+    if (MagickReadImageBlob(wand, pinnedHeicData.data, (size_t) pinnedHeicData.length) == MagickFalse) {
+        ExceptionType exceptionType;
+        auto reason = MagickGetException(wand, &exceptionType);
+        std::ostringstream message;
+        message << "Unable to read input image - " << exceptionType << " - "<< reason;
+        throw Error(message.str());
+    }
+}
+
+jbyteArray JNICALL
 Java_at_yeoman_photobackup_server_imageMagick_ImageMagick_convertToJpeg(JNIEnv *env, jclass, jbyteArray inputData) {
     try {
         PinnedByteArray pinnedHeicData(env, inputData);
         
         auto wand = createWand();
         
-        if (MagickReadImageBlob(wand, pinnedHeicData.data, (size_t) pinnedHeicData.length) == MagickFalse) {
-            throw Error("Unable to read input image");
-        }
+        readImage(wand, pinnedHeicData);
         
         MagickSetImageFormat(wand, "JPEG");
         
