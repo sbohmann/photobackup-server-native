@@ -25,12 +25,21 @@ struct PinnedByteArray {
               length(env->GetArrayLength(array)) {
     }
     
-    ~PinnedByteArray() {
-        env->ReleaseByteArrayElements(array, data, 0);
+    PinnedByteArray(PinnedByteArray &&other)
+            : env(other.env), array(other.array), data(other.data), length(other.length) {
+        other.disabled = true;
     }
     
+    ~PinnedByteArray() {
+        if (!disabled) {
+            env->ReleaseByteArrayElements(array, data, 0);
+        }
+    }
+
 private:
-    PinnedByteArray(const PinnedByteArray &other);
+    bool disabled = false;
+    
+    PinnedByteArray(const PinnedByteArray &);
 };
 
 template<typename T>
@@ -42,13 +51,25 @@ struct AutoClosing {
             : instance(entity), close(close) {
     }
     
+    AutoClosing(AutoClosing &&other)
+            : instance(other.instance), close(other.close) {
+        other.disabled = true;
+    }
+    
     ~AutoClosing() {
-        close(instance);
+        if (!disabled) {
+            close(instance);
+        }
     }
     
     operator const T &() {
         return instance;
     }
+
+private:
+    bool disabled = false;
+    
+    AutoClosing(const AutoClosing &);
 };
 
 struct Error : public std::exception {
@@ -58,15 +79,13 @@ struct Error : public std::exception {
             : message(message) {
     }
     
-    virtual const char * what() const throw() {
+    virtual const char *what() const throw() {
         return message.c_str();
     }
 };
 
-void readImage(AutoClosing<MagickWand *> closing, PinnedByteArray array);
-
 auto createWand() {
-    auto wand = AutoClosing<MagickWand *>(
+    AutoClosing<MagickWand *> wand(
             NewMagickWand(),
             [](MagickWand *const instance) {
                 if (instance) {
@@ -89,12 +108,12 @@ void javaThrow(JNIEnv *env, const std::string &message) {
 }
 
 // TODO handle errors from MagickWand
-JNIEXPORT void readImage(AutoClosing<MagickWand *> wand, const PinnedByteArray &pinnedHeicData) {
+JNIEXPORT void readImage(AutoClosing<MagickWand *> &wand, PinnedByteArray &pinnedHeicData) {
     if (MagickReadImageBlob(wand, pinnedHeicData.data, (size_t) pinnedHeicData.length) == MagickFalse) {
         ExceptionType exceptionType;
         auto reason = MagickGetException(wand, &exceptionType);
         std::ostringstream message;
-        message << "Unable to read input image - " << exceptionType << " - "<< reason;
+        message << "Unable to read input image - " << exceptionType << " - " << reason;
         throw Error(message.str());
     }
 }
@@ -141,8 +160,8 @@ JNIEXPORT jbyteArray JNICALL Java_at_yeoman_photobackup_server_imageMagick_Image
         PinnedByteArray pinnedHeicData(env, inputData);
         
         auto wand = createWand();
-        
-        MagickReadImageBlob(wand, pinnedHeicData.data, (size_t) pinnedHeicData.length);
+    
+        readImage(wand, pinnedHeicData);
         
         size_t originalWidth = MagickGetImageWidth(wand);
         size_t originalHeight = MagickGetImageHeight(wand);
