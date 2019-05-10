@@ -1,5 +1,5 @@
 #!/bin/sh
-export JAVA_HOME=/usr/local/openjdk8
+export JAVA_HOME
 export JNI_OS=freebsd
 export MAGICK_INCLUDES=/usr/local/include/ImageMagick-7
 export MAGICK_LIBS=/usr/local/lib
