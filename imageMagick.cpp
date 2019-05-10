@@ -153,6 +153,8 @@ Java_at_yeoman_photobackup_server_imageMagick_ImageMagick_convertToJpeg(JNIEnv *
     }
 }
 
+bool dbg = true;
+
 // TODO handle errors from MagickWand
 JNIEXPORT jbyteArray JNICALL Java_at_yeoman_photobackup_server_imageMagick_ImageMagick_convertToJpegWithMaximumSize
         (JNIEnv *env, jclass, jbyteArray inputData, jint maximumWidth, jint maximumHeight) {
@@ -164,6 +166,8 @@ JNIEXPORT jbyteArray JNICALL Java_at_yeoman_photobackup_server_imageMagick_Image
     }
     
     try {
+        if (dbg) return nullptr;
+        
         PinnedByteArray pinnedHeicData(env, inputData);
         
         auto wand = createWand();
