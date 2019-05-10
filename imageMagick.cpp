@@ -147,6 +147,9 @@ Java_at_yeoman_photobackup_server_imageMagick_ImageMagick_convertToJpeg(JNIEnv *
     } catch (std::exception &error) {
         javaThrow(env, std::string() + "ImageMagick.convertToJpeg: " + error.what());
         return nullptr;
+    } catch (...) {
+        javaThrow(env, std::string() + "ImageMagick.convertToJpeg: unknwon error");
+        return nullptr;
     }
 }
 
@@ -206,6 +209,9 @@ JNIEXPORT jbyteArray JNICALL Java_at_yeoman_photobackup_server_imageMagick_Image
         return resultData;
     } catch (std::exception &error) {
         javaThrow(env, std::string() + "ImageMagick.convertToJpegWithMaximumSize: " + error.what());
+        return nullptr;
+    } catch (...) {
+        javaThrow(env, std::string() + "ImageMagick.convertToJpegWithMaximumSize: unknwon error");
         return nullptr;
     }
 }
