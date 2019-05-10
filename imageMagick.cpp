@@ -166,8 +166,6 @@ JNIEXPORT jbyteArray JNICALL Java_at_yeoman_photobackup_server_imageMagick_Image
     }
     
     try {
-        if (dbg) return nullptr;
-        
         PinnedByteArray pinnedHeicData(env, inputData);
         
         auto wand = createWand();
@@ -191,6 +189,8 @@ JNIEXPORT jbyteArray JNICALL Java_at_yeoman_photobackup_server_imageMagick_Image
         }
 
 //        std::cout << "width: " << width << ", height " << height << " for originalWidth " << originalWidth << ", originalHeight " << originalHeight << std::endl;
+    
+        if (dbg) return nullptr;
         
         MagickSetImageFormat(wand, "JPEG");
         
