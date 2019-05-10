@@ -51,24 +51,24 @@
 //    }
 //}
 
-int main() {
-    MagickWandGenesis();
-
-    MagickWand *wand = nullptr;
-
-    wand = NewMagickWand();
-    // Read the image - all you need to do is change "logo:" to some other
-    // filename to have this resize and, if necessary, convert a different file
-    MagickReadImage(wand,"e:/tmp/original.heic");
-
-    size_t size = 0;
-    unsigned char * data = MagickGetImageBlob(wand, &size);
-
-    /* Write the new image */
-    MagickWriteImage(wand,"out.jpg");
-
-    /* Clean up */
-    if(wand)wand = DestroyMagickWand(wand);
-
-    MagickWandTerminus();
-}
+//int main() {
+//    MagickWandGenesis();
+//
+//    MagickWand *wand = nullptr;
+//
+//    wand = NewMagickWand();
+//    // Read the image - all you need to do is change "logo:" to some other
+//    // filename to have this resize and, if necessary, convert a different file
+//    MagickReadImage(wand,"e:/tmp/original.heic");
+//
+//    size_t size = 0;
+//    unsigned char * data = MagickGetImageBlob(wand, &size);
+//
+//    /* Write the new image */
+//    MagickWriteImage(wand,"out.jpg");
+//
+//    /* Clean up */
+//    if(wand)wand = DestroyMagickWand(wand);
+//
+//    MagickWandTerminus();
+//}
